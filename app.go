@@ -194,6 +194,7 @@ func (app *App) AddCommand(cmd Command) error {
 
 		// Parse templates in Usage field
 		item.Usage = strings.ReplaceAll(item.Usage, "${name}", item.Name)
+		item.Usage = strings.ReplaceAll(item.Usage, "${fullName}", item.FullName())
 
 		itemCtx := item.NewContext()
 		if item.SetFlags != nil {

@@ -228,11 +228,16 @@ func TestTemplateReplacement(t *testing.T) {
 		t.Error("App.GetByName: got error:\n", err)
 	} else {
 		if !strings.Contains(res.Usage, "test [-top]:") {
-			t.Errorf("App.Usage: expected substring 'test [-top]:' got:\n%s", res.Usage)
+			t.Errorf("App.Command.Usage: expected substring 'test [-top]:' got:\n%s", res.Usage)
 		}
 
 		if !strings.Contains(res.Usage, "example top-level flag") {
-			t.Errorf("App.Usage: expected substring 'example top-level flag' got:\n%s", res.Usage)
+			t.Errorf("App.Command.Usage: expected substring 'example top-level flag' got:\n%s", res.Usage)
+		}
+
+		if !strings.Contains(res.SubCommands[0].Usage, "test secondary [-second]") {
+			t.Errorf("App.Command.SubCommand.Usage: expected substring 'test secondary [-second]' got:\n%s",
+				res.SubCommands[0].Usage)
 		}
 	}
 }

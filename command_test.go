@@ -29,7 +29,8 @@ ${flags}`,
 
 	SubCommands: []Command{
 		{
-			Name: "secondary",
+			Name:  "secondary",
+			Usage: "${fullName} ${shortFlags}",
 			SetFlags: func(ctx *Context) {
 				ctx.Set("second", ctx.FlagSet().Int("second", 21, "example second-level flag"))
 			},

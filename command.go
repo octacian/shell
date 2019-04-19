@@ -30,10 +30,12 @@ type Command struct {
 	// Usage should contain a detailed description of the command. There are no
 	// limitations to its length. Several sequences are substituted with
 	// information relating to the command when found within the usage string:
-	// `${name}` is substituted with the name of the command, ${flags} with the
-	// help information for the command flags as described by
-	// flag.PrintDefaults, and ${shortFlags} for a short list of all registered
-	// flags in the format of [-<flag name>] and separated with spaces.
+	// `${name}` is substituted with the name of the command, ${fullName} with
+	// the full name of the command (including parent command name if the
+	// command is a sub-command), ${flags} with the help information for the
+	// command flags as described by/ flag.PrintDefaults, and ${shortFlags} for
+	// a short list of all registered flags in the format of [-<flag name>] and
+	// separated with spaces.
 	Usage string
 
 	// SetFlags should register any flags with the flag.FlagSet available
