@@ -8,6 +8,9 @@ import (
 	"testing"
 )
 
+var blankSetFlagsFunc = func(ctx *Context) {
+	ctx.FlagSet().Bool("test", true, "testing bool")
+}
 var blankMainFunc = func(_ *Context) ExitStatus { return ExitCmd }
 
 var TmplSimpleCmd = Command{
@@ -18,6 +21,11 @@ var TmplSimpleCmd = Command{
 		ctx.App().Println("Hello world from test command!")
 		return ExitCmd
 	},
+}
+
+var TmplBlankSubCmd = Command{
+	Name: "second",
+	Main: blankMainFunc,
 }
 
 // MainInput takes a test state, an app, a message, an input string, and a
@@ -163,8 +171,8 @@ func TestBadAddCommand(t *testing.T) {
 	subCmdTmpl(&Command{Name: "test"}, "sub-command missing main function", "function for (sub-)command")
 
 	subCmdMainTmpl(&Command{Name: "-no"}, "'-' at start of sub-command name", "must not begin with")
-	subCmdMainTmpl(&Command{Name: "test", SubCommands: []Command{
-		{Name: "test"},
+	subCmdMainTmpl(&Command{Name: "second-level", SubCommands: []Command{
+		{Name: "third-level"},
 	}}, "two levels of sub-commands", "more than one level")
 }
 
@@ -174,13 +182,9 @@ func TestWorkingCommand(t *testing.T) {
 	app := NewApp("TestWorkingCommand", false)
 
 	cmdTmpl := Command{
-		Main: blankMainFunc,
-		SubCommands: []Command{
-			{
-				Name: "second",
-				Main: blankMainFunc,
-			},
-		},
+		SetFlags:    blankSetFlagsFunc,
+		Main:        blankMainFunc,
+		SubCommands: []Command{TmplBlankSubCmd},
 	}
 
 	addCommand := func(name string, defaults interface{}) error {
@@ -214,6 +218,18 @@ func TestWorkingCommand(t *testing.T) {
 			t.Errorf("App.AddCommand: got %d sub-commands with command 'blank-defaults' expected %d",
 				len(cmd.SubCommands), len(DefaultSubCommands)+1)
 		}
+	}
+
+	if err := app.AddCommand(Command{
+		Name:        "no-setflags",
+		Main:        blankMainFunc,
+		SubCommands: []Command{TmplBlankSubCmd},
+	}); err != nil {
+		t.Error("App.AddCommand: got error with no SetFlags function:\n", err)
+	} else if cmd, err := app.GetByName("no-setflags"); err != nil {
+		t.Error("App.GetByName: got error fetching 'no-setflags':\n", err)
+	} else if _, err := cmd.GetSubCommand("flags"); err == nil {
+		t.Error("App.AddCommand: found 'flags' sub-command with nil SetFlags function")
 	}
 }
 

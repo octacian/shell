@@ -144,7 +144,18 @@ func (app *App) AddCommand(cmd Command) error {
 	if len(cmd.SubCommands) > 0 {
 		// Add default sub-commands
 		if cmd.PreventDefaultSubCommands != true {
-			cmd.SubCommands = append(cmd.SubCommands, DefaultSubCommands...)
+			for _, def := range DefaultSubCommands {
+				switch def.Name {
+				case "flags":
+					for _, item := range append(cmd.SubCommands, cmd) {
+						if item.SetFlags != nil {
+							cmd.SubCommands = append(cmd.SubCommands, def)
+						}
+					}
+				default:
+					cmd.SubCommands = append(cmd.SubCommands, def)
+				}
+			}
 		}
 
 		for key := range cmd.SubCommands {
