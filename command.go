@@ -87,6 +87,18 @@ func (cmd *Command) NewContext() *Context {
 	return NewContext(cmd.app, cmd, flagSet, cmd.parent)
 }
 
+// GetSubCommand attempts to fetch a sub-command by name, returning a pointer
+// to the sub-command if successful and an error if it does not exist.
+func (cmd *Command) GetSubCommand(name string) (*Command, error) {
+	for _, subCmd := range cmd.SubCommands {
+		if name == subCmd.Name {
+			return &subCmd, nil
+		}
+	}
+
+	return nil, fmt.Errorf("Command.GetSubCommand: sub-command '%s' does not exist", name)
+}
+
 // Match takes an array of strings, usually representing some user input
 // retrieved from the shell loop. If the input does not call for this command
 // an error is returned, otherwise Match checks if the input calls for a sub-
@@ -94,10 +106,8 @@ func (cmd *Command) NewContext() *Context {
 func (cmd *Command) Match(input []string) (*Command, error) {
 	if input[0] == cmd.Name {
 		if len(cmd.SubCommands) > 0 && len(input) > 1 && input[1][1] != '-' {
-			for _, subCmd := range cmd.SubCommands {
-				if input[1] == subCmd.Name {
-					return &subCmd, nil
-				}
+			if subCmd, err := cmd.GetSubCommand(input[1]); err == nil {
+				return subCmd, nil
 			}
 		}
 
