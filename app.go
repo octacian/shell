@@ -299,7 +299,7 @@ func (app *App) Main() ExitStatus {
 			}
 		}
 
-		if exitStatus != ExitCmd {
+		if exitStatus != ExitCmd && exitStatus != ExitUsage {
 			return exitStatus
 		}
 	}

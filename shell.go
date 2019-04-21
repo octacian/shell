@@ -14,6 +14,10 @@ const (
 	// ExitCmd exits only the command.
 	ExitCmd ExitStatus = iota
 
+	// ExitUsage does the same as ExitCmd but also prints the Usage string for
+	// the command.
+	ExitUsage
+
 	// ExitShell exits the shell's infinite loop, but does not itself trigger
 	// the entire program to exit.
 	ExitShell

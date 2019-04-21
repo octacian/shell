@@ -133,5 +133,11 @@ func (cmd *Command) Execute(input []string) (ExitStatus, error) {
 		return ExitCmd, &ErrParseFlags{Name: cmd.Name, Err: err}
 	}
 
-	return cmd.Main(ctx), nil
+	exitStatus := cmd.Main(ctx)
+	// if exitStatus is ExitUsage, print Usage string
+	if exitStatus == ExitUsage {
+		cmd.app.Println(cmd.Usage)
+	}
+
+	return exitStatus, nil
 }

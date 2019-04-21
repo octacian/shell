@@ -24,7 +24,7 @@ ${flags}`,
 	},
 	Main: func(ctx *Context) ExitStatus {
 		ctx.App().Println("Hello world!", *ctx.MustGet("top").(*int))
-		return ExitCmd
+		return ExitUsage
 	},
 
 	SubCommands: []Command{
@@ -110,12 +110,16 @@ func TestMatch(t *testing.T) {
 func TestExecute(t *testing.T) {
 	if status, err := testCmd.Execute([]string{"test", "-top", "19"}); err != nil {
 		t.Error("Command.Execute: got error:\n", err)
-	} else if status != ExitCmd {
-		t.Errorf("Command.Execute: got ExitStatus '%d' expected '%d'", status, ExitCmd)
+	} else if status != ExitUsage {
+		t.Errorf("Command.Execute: got ExitStatus '%d' expected '%d'", status, ExitUsage)
+	} else if !strings.Contains(output.String(), "${name} ${shortFlags}:\n\nExecute") {
+		t.Error("Command.Execute: expected output to contain Usage with ExitUsage, got:\n", output.String())
 	}
 
-	if _, err := testCmd.SubCommands[0].Execute([]string{"test", "secondary"}); err != nil {
+	if status, err := testCmd.SubCommands[0].Execute([]string{"test", "secondary"}); err != nil {
 		t.Error("Command.Execute: got error:\n", err)
+	} else if status != ExitCmd {
+		t.Errorf("Command.Execute: got ExitStatus '%d' expected '%d'", status, ExitCmd)
 	}
 
 	if _, err := testCmd.Execute([]string{"test", "---hello"}); err == nil {
