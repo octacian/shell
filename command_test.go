@@ -40,6 +40,12 @@ ${flags}`,
 			},
 			app: app,
 		},
+		{
+			Name:     "no-usage",
+			Synopsis: "a useless command with no usage",
+			Main:     blankMainFunc,
+			app:      app,
+		},
 	},
 
 	app: app,

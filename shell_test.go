@@ -19,7 +19,7 @@ func WithSubCommands(t *testing.T, name string, fn func(*App)) {
 func TestExitCommand(t *testing.T) {
 	app := NewApp("TestExitCommand", true)
 
-	MainInputWithStatus(t, app, "exit command with disallowed arguments", "exit hello", ExitCmd, "Usage: exit")
+	MainInputWithStatus(t, app, "exit command with disallowed arguments", "exit hello", ExitCmd, "exit [-shell-only]")
 	MainInputWithStatus(t, app, "exit command with -shell-only flag", "exit -shell-only", ExitShell)
 	MainInputWithStatus(t, app, "exit command with no flags", "exit", ExitAll)
 }
@@ -32,12 +32,12 @@ func TestHelpCommand(t *testing.T) {
 		t.Error("App.AddCommand: got error:\n", err)
 	} else {
 		MainInput(t, app, "help with no arguments", "help", "Available commands", "exit shell", "testing command")
-		MainInput(t, app, "help for 'test' command including Usage string", "help test", "test", "testing command", "tests stuff")
+		MainInput(t, app, "help for 'test' command without Usage string", "help test", "test", "testing command")
 	}
 
-	MainInput(t, app, "help for 'exit' command", "help exit", "exit", "exit shell")
+	MainInput(t, app, "help for 'exit' command", "help exit", "exit", "exit [-shell-only]")
 	MainInput(t, app, "help for non-existent 'nothing' command", "help nothing", "command not found")
-	MainInput(t, app, "help with too many arguments", "help exit test", "Usage: help")
+	MainInput(t, app, "help with too many arguments", "help exit test", "help [<command name>]")
 }
 
 // TestCommandsSubCommand tests the default second-level commands command.
@@ -65,6 +65,7 @@ func TestHelpSubCommand(t *testing.T) {
 		MainInput(t, app, "help with no arguments", "test help", "Usage: test <sub-command>", "secondary",
 			"commands", "list all", "flags", "describe all")
 		MainInput(t, app, "help for 'flags' sub-command", "test help flags", "flags [<sub-command>]:")
+		MainInput(t, app, "help for 'no-usage' sub-command with no usage string", "test help no-usage", "useless command")
 		MainInput(t, app, "help for non-existant 'nothing' sub-command", "test help nothing", "test nothing", "not found")
 	})
 }

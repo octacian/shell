@@ -32,6 +32,7 @@ var DefaultCommands = []*Command{
 	{
 		Name:     "exit",
 		Synopsis: "exit shell",
+		Usage:    "${name} ${shortFlags}:\n\n${flags}",
 		SetFlags: func(ctx *Context) {
 			ctx.Set("flagOnlyShell", ctx.FlagSet().Bool("shell-only", false, "exit only the shell, "+
 				"returning to the main program"))
@@ -39,9 +40,7 @@ var DefaultCommands = []*Command{
 		Main: func(ctx *Context) ExitStatus {
 			// if any arguments were provided, print usage
 			if ctx.FlagSet().NArg() > 0 {
-				ctx.App().Println("Usage: exit [OPTIONS]")
-				ctx.FlagSet().PrintDefaults()
-				return ExitCmd
+				return ExitUsage
 			}
 
 			if *ctx.ShouldGet("flagOnlyShell").(*bool) {
@@ -54,6 +53,7 @@ var DefaultCommands = []*Command{
 	{
 		Name:     "help",
 		Synopsis: "list existing commands and their synopsis",
+		Usage:    "${name} [<command name>]",
 		Main: func(ctx *Context) ExitStatus {
 			switch ctx.FlagSet().NArg() {
 			case 0:
@@ -66,7 +66,8 @@ var DefaultCommands = []*Command{
 					list = append(list, fmt.Sprintf("\t%s\t\t%s\n", command.Name, command.Synopsis))
 				}
 				sort.Strings(list)
-				ctx.App().Printf("Available commands:\n%s", strings.Join(list, ""))
+				ctx.App().Printf("Available commands:\n%s\n\nFor more information, type `help <command name>`.",
+					strings.Join(list, ""))
 			case 1:
 				requested, err := ctx.App().GetByName(ctx.FlagSet().Arg(0))
 				if err != nil {
@@ -74,14 +75,13 @@ var DefaultCommands = []*Command{
 					return ExitCmd
 				}
 
-				ctx.App().Printf("%s\t%s\n", requested.Name, requested.Synopsis)
-
-				if requested.Usage != "" {
-					ctx.App().Printf("\n%s", requested.Usage)
+				if requested.Usage == "" {
+					ctx.App().Printf("%s\t\t%s\n", requested.Name, requested.Synopsis)
+				} else {
+					ctx.App().Printf("%s\n", requested.Usage)
 				}
 			default: // if more than 1 argument was provided, print usage
-				ctx.App().Println("Usage: help [OPTIONS]")
-				ctx.FlagSet().PrintDefaults()
+				return ExitUsage
 			}
 
 			return ExitCmd
@@ -96,11 +96,11 @@ var DefaultSubCommands = []Command{
 		Name:     "commands",
 		Synopsis: "list all sub-command names",
 		Usage: `${name}:
+
 Print a list of all sub-commands.`,
 		Main: func(ctx *Context) ExitStatus {
 			if ctx.FlagSet().NArg() > 0 {
-				ctx.App().Println(ctx.Command().Usage)
-				return ExitCmd
+				return ExitUsage
 			}
 
 			for _, subCmd := range ctx.Parent().SubCommands {
@@ -114,6 +114,7 @@ Print a list of all sub-commands.`,
 		Name:     "flags",
 		Synopsis: "describe all known top-level flags",
 		Usage: `${name} [<sub-command>]:
+
 With an argument, print all flags of <sub-command>. Else, print a
 description of all known top-level flags. (The basic help information only
 discusses the most generally important top-level flags.)`,
@@ -121,8 +122,7 @@ discusses the most generally important top-level flags.)`,
 			flags := ctx.FlagSet()
 
 			if flags.NArg() > 1 {
-				ctx.App().Println(ctx.Command().Usage)
-				return ExitCmd
+				return ExitUsage
 			}
 
 			var reqCmd *Command
@@ -158,6 +158,7 @@ discusses the most generally important top-level flags.)`,
 		Name:     "help",
 		Synopsis: "describe sub-commands and their syntax",
 		Usage: `${name} [<sub-command>]:
+
 With an argument, prints detailed information on the use of the specified
 sub-command. With no argument, prints a list of all commands and a brief
 description of each.`,
@@ -166,9 +167,6 @@ description of each.`,
 
 			switch ctx.FlagSet().NArg() {
 			case 0:
-				ctx.App().Printf("Usage: %s <sub-command> <sub-command args>\n\n"+
-					"Sub-commands:\n", parent.Name)
-
 				list := make([]string, 0)
 				for _, subCmd := range parent.SubCommands {
 					if subCmd.Name == "help" { // Ignore help sub-command
@@ -178,7 +176,9 @@ description of each.`,
 					list = append(list, fmt.Sprintf("\t%s\t\t%s\n", subCmd.Name, subCmd.Synopsis))
 				}
 				sort.Strings(list)
-				ctx.App().Println(strings.Join(list, ""))
+
+				ctx.App().Printf("Usage: %s <sub-command> <sub-command args>\n\n"+
+					"Sub-commands:\n%s", parent.Name, strings.Join(list, ""))
 			case 1:
 				var reqCmd *Command
 				for _, cmd := range parent.SubCommands {
@@ -194,9 +194,13 @@ description of each.`,
 					return ExitCmd
 				}
 
-				ctx.App().Println(reqCmd.Usage)
+				if reqCmd.Usage == "" {
+					ctx.App().Printf("%s\t\t%s\n", reqCmd.Name, reqCmd.Synopsis)
+				} else {
+					ctx.App().Printf("%s\n", reqCmd.Usage)
+				}
 			default:
-				ctx.App().Println(ctx.Command().Usage)
+				return ExitUsage
 			}
 
 			return ExitCmd

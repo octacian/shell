@@ -16,7 +16,6 @@ var blankMainFunc = func(_ *Context) ExitStatus { return ExitCmd }
 var TmplSimpleCmd = Command{
 	Name:     "test",
 	Synopsis: "testing command",
-	Usage:    "tests stuff",
 	Main: func(ctx *Context) ExitStatus {
 		ctx.App().Println("Hello world from test command!")
 		return ExitCmd
